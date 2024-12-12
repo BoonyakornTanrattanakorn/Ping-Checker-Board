@@ -3,5 +3,8 @@
         "new": "cpp",
         "chrono": "cpp",
         "iostream": "cpp"
+    },
+    "files.exclude": {
+        "**/*.exe": true
     }
 }
