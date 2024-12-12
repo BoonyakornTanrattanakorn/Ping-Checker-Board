@@ -2,7 +2,9 @@
     "files.associations": {
         "new": "cpp",
         "chrono": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp"
     },
     "files.exclude": {
         "**/*.exe": true
