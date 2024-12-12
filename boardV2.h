@@ -13,9 +13,9 @@ class Board{
         set<pair<uint8_t, uint8_t>> board;
         uint8_t board_width, board_height;
 
-        Board(uint8_t width, uint8_t initial_row)
+        Board(uint8_t width, uint8_t height)
             : board_width(width),
-              board_height(initial_row)
+              board_height(height)
         {
             for(uint8_t i = 0; i < board_height; ++i){
                 for(uint8_t j = 0; j < board_width; ++j){
@@ -24,12 +24,11 @@ class Board{
             }
         }
 
-        Board(Board& other)
+        Board(const Board& other)
             : board(other.board),
-            board_width(other.board_width),
-            board_height(other.board_height)
+              board_width(other.board_width),
+              board_height(other.board_height)
         {
-            
         }
 
         bool isEmptyTile(uint8_t i, uint8_t j){
@@ -94,8 +93,6 @@ class Board{
                 }
         }
 
-
-
         void performMove(uint8_t i, uint8_t j, uint8_t dir){
             #if CHECK_BEFORE_MOVING
                 if(tileEmpty(i, j)) return;
@@ -138,6 +135,12 @@ class Board{
             tmp.performMove(move.i, move.j, move.dir);
             tmp.print();
         }
+
+        
+        bool operator<(const Board& other) const {
+            return board < other.board;
+        }
+
 };
 
 #endif

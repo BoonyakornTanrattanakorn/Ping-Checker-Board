@@ -15,14 +15,14 @@ using namespace std;
 #define DFS_SOLVE_METHOD 2
 
 bool isFinished = false;
-int leaf_node = 0;
 int iteration = 0;
+int max_height = 0;
+map<Board, pair<uint8_t, stack<moveCommand>>> explored;
 
 pair<uint8_t, stack<moveCommand>> DFS(Board board){
       stack<moveCommand> moves = board.getAllMoves();
       ++iteration;
       if(moves.empty()){
-            ++leaf_node;
             return {board.board_height, {}};
       }
 
@@ -44,11 +44,15 @@ pair<uint8_t, stack<moveCommand>> DFS(Board board){
 
 // heuristic where pieces should always move to the center
 // piece on left should move to right, piece on right should move to left (all piece should move to the center)
+// with memorization
 pair<uint8_t, stack<moveCommand>> DFS2(Board board){
-      stack<moveCommand> moves = board.getAllMoves();
       ++iteration;
+      auto it = explored.find(board);
+      if(it != explored.end()){
+            return (*it).second;
+      }
+      stack<moveCommand> moves = board.getAllMoves();
       if(moves.empty()){
-            ++leaf_node;
             return {board.board_height, {}};
       }
       pair<uint8_t, stack<moveCommand>> best_result = {0, {}};
@@ -62,15 +66,17 @@ pair<uint8_t, stack<moveCommand>> DFS2(Board board){
             Board nextState = Board(board);
             nextState.performMove(m);
 
-            pair<int, stack<moveCommand>> result = DFS2(nextState);
+            pair<uint8_t, stack<moveCommand>> result = DFS2(nextState);
             if(result.first > best_result.first){
                   best_result = result;
                   best_move = m;
             }
       }
       best_result.second.emplace(best_move);
+      explored[board] = best_result;
       return best_result;
 }
+
 
 void solveByDFS(Board& board){
       cout << "Solving by brute force depth first search\n";
@@ -90,7 +96,6 @@ void solveByDFS(Board& board){
             result.second.pop();
       }
       cout << "Final height is: " << result.first << '\n';
-      cout << "Amount of leaf node: " << leaf_node << '\n';
       cout << "Total iteration: " << iteration << '\n';
 }
 
@@ -98,7 +103,6 @@ void progressReport(){
       auto start = chrono::high_resolution_clock::now();
       this_thread::sleep_for(5000ms);
       while(!isFinished){
-            cout << "Leaf node explored: " << leaf_node << '\n';
             cout << "Iteration: " << iteration << '\n';
 
             auto end = chrono::high_resolution_clock::now();
@@ -109,7 +113,7 @@ void progressReport(){
       }
 }
 
-#define BOARD_WIDTH 9
+#define BOARD_WIDTH 11
 #define BOARD_HEIGHT 2
 
 int main(){
