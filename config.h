@@ -1,0 +1,6 @@
+#define BOARD_WIDTH 3
+#define BOARD_HEIGHT 4
+
+
+#define BOARD_VERSION 3
+#define DFS_SOLVE_METHOD 2

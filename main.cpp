@@ -1,23 +1,22 @@
 #include <bits/stdc++.h>
 #include <thread>
+#include "config.h"
 using namespace std;
 
 
-#define BOARD_VERSION 2
 #if BOARD_VERSION == 1
       #include "board.h"
 #elif BOARD_VERSION == 2
       #include "boardV2.h"
-#else
-      #include "board.h"
+#elif BOARD_VERSION == 3
+      #include "boardV3.h"
 #endif
 
-#define DFS_SOLVE_METHOD 2
 
 bool isFinished = false;
 int iteration = 0;
 int max_height = 0;
-map<Board, pair<uint8_t, stack<moveCommand>>> explored;
+unordered_map<Board, pair<uint8_t, stack<moveCommand>>, BoardHash> explored;
 
 pair<uint8_t, stack<moveCommand>> DFS(Board board){
       stack<moveCommand> moves = board.getAllMoves();
@@ -95,7 +94,7 @@ void solveByDFS(Board& board){
             board.print();
             result.second.pop();
       }
-      cout << "Final height is: " << result.first << '\n';
+      cout << "Final height is: " << (int)result.first << '\n';
       cout << "Total iteration: " << iteration << '\n';
 }
 
@@ -103,18 +102,12 @@ void progressReport(){
       auto start = chrono::high_resolution_clock::now();
       this_thread::sleep_for(5000ms);
       while(!isFinished){
-            cout << "Iteration: " << iteration << '\n';
-
             auto end = chrono::high_resolution_clock::now();
             auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-            cout << "Average speed: " << iteration/(duration.count()/1000000.0) << " it/s\n";
-            cout << "Elapsed Time: " << duration.count()/1000000.0 << " seconds\n\n";
+            printf("Iteration: %d\nAverage speed: %.01f it/s\nElapsed Time: %.01f seconds\n\n", iteration, iteration/(duration.count()/1000000.0), duration.count()/1000000.0);
             this_thread::sleep_for(5000ms);
       }
 }
-
-#define BOARD_WIDTH 11
-#define BOARD_HEIGHT 2
 
 int main(){
       Board board = Board(BOARD_WIDTH, BOARD_HEIGHT);

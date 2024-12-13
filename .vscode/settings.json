@@ -4,7 +4,11 @@
         "chrono": "cpp",
         "iostream": "cpp",
         "functional": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "bitset": "cpp",
+        "stack": "cpp",
+        "stacktrace": "cpp",
+        "thread": "cpp"
     },
     "files.exclude": {
         "**/*.exe": true

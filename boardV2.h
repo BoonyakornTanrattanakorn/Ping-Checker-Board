@@ -120,11 +120,13 @@ class Board{
             return out;
         }
 
-        void print(){
-            for(uint8_t i = 0; i < board_height; ++i){
-                for(uint8_t j = 0; j < board_width; ++j){
-                    cout << (isPiece(i, j) ? '*' : '-') << ' ';
-                }
+        void print() {
+            vector<vector<char>> display(board_height, vector<char>(board_width, '-'));
+            for (const auto& p : board) {
+                display[p.first][p.second] = '*';
+            }
+            for (const auto& row : display) {
+                for (char cell : row) cout << cell << ' ';
                 cout << '\n';
             }
             cout << '\n';
