@@ -1,15 +1,17 @@
-#ifndef BOARD_V2_H
-#define BOARD_V2_H
+#ifndef BOARD_V3_H
+#define BOARD_V3_H
 
 #include <vector>
 #include <bitset>
 #include <stack>
 #include <iostream>
 #include "moveCommand.h"
-
 using namespace std;
 
+#define BOARD_WIDTH 16
+
 class Board {
+
 public:
     vector<bitset<BOARD_WIDTH>> board; // Each bitset represents a row
     uint8_t board_width, board_height;
@@ -93,9 +95,29 @@ public:
         else performRightMove(i, j);
     }
 
+    void undoMove(uint8_t i, uint8_t j, uint8_t dir) {
+        if (dir == 0) { // Undo left move
+            board[i][j] = 1;         // Restore the original piece
+            board[i][j - 1] = 1;     // Restore the jumped-over piece
+            board[i][j - 2] = 0;     // Remove the new position
+        } else if (dir == 1) { // Undo down move
+            board[i][j] = 1;         // Restore the original piece
+            board[i + 1][j] = 1;     // Restore the jumped-over piece
+            board[i + 2][j] = 0;     // Remove the new position
+        } else if (dir == 2) { // Undo right move
+            board[i][j] = 1;         // Restore the original piece
+            board[i][j + 1] = 1;     // Restore the jumped-over piece
+            board[i][j + 2] = 0;     // Remove the new position
+        }
+    }
+
     // Perform a move using a moveCommand
     void performMove(moveCommand command) {
         performMove(command.i, command.j, command.dir);
+    }
+
+    void undoMove(moveCommand command){
+        undoMove(command.i, command.j, command.dir);
     }
 
     // Perform the starter move
@@ -161,15 +183,19 @@ public:
         
         return true;
     }
+
+    size_t hash() const {
+        size_t hash_value = 0;
+        for (const auto& row : board) {
+            hash_value ^= std::hash<std::bitset<BOARD_WIDTH>>{}(row) + 0x9e3779b9 + (hash_value << 6) + (hash_value >> 2);
+        }
+        return hash_value;
+    }
 };
 
 struct BoardHash {
     size_t operator()(const Board& board) const {
-        size_t hash_value = 0;
-        for (const auto& row : board.board) { // Assuming getBitsetRepresentation() returns board rows
-            hash_value ^= hash<bitset<BOARD_WIDTH>>{}(row) + 0x9e3779b9 + (hash_value << 6) + (hash_value >> 2);
-        }
-        return hash_value;
+        return board.hash(); // Call the const `hash()` method
     }
 };
 

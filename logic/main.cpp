@@ -1,50 +1,47 @@
-#include <bits/stdc++.h>
+#include <unordered_map>
 #include <thread>
-#include "config.h"
 using namespace std;
 
-
-#if BOARD_VERSION == 1
-      #include "board.h"
-#elif BOARD_VERSION == 2
-      #include "boardV2.h"
-#elif BOARD_VERSION == 3
-      #include "boardV3.h"
-#endif
-
+#include "boardV3.h"
 
 bool isFinished = false;
 int iteration = 0;
-int max_height = 0;
 unordered_map<Board, pair<uint8_t, stack<moveCommand>>, BoardHash> explored;
 
-pair<uint8_t, stack<moveCommand>> DFS(Board board){
-      stack<moveCommand> moves = board.getAllMoves();
+pair<uint8_t, stack<moveCommand>> DFS(Board& board){
       ++iteration;
+      auto it = explored.find(board);
+      if(it != explored.end()){
+            return (*it).second;
+      }
+      stack<moveCommand> moves = board.getAllMoves();
       if(moves.empty()){
             return {board.board_height, {}};
       }
-
       pair<uint8_t, stack<moveCommand>> best_result = {0, {}};
+      moveCommand best_move;
       while(!moves.empty()){
-            Board nextState = Board(board);
-            nextState.performMove(moves.top());
-            pair<uint8_t, stack<moveCommand>> result = DFS(nextState);
+            moveCommand m = moves.top();
+            moves.pop();
 
+            Board nextState(board);
+            nextState.performMove(m);
+
+            pair<uint8_t, stack<moveCommand>> result = DFS(nextState);
             if(result.first > best_result.first){
                   best_result = result;
-                  best_result.second.emplace(moves.top());
+                  best_move = m;
             }
-            moves.pop();
       }
-
+      best_result.second.emplace(best_move);
+      explored[board] = best_result;
       return best_result;
 }
 
 // heuristic where pieces should always move to the center
 // piece on left should move to right, piece on right should move to left (all piece should move to the center)
 // with memorization
-pair<uint8_t, stack<moveCommand>> DFS2(Board board){
+pair<uint8_t, stack<moveCommand>> DFS2(Board& board){
       ++iteration;
       auto it = explored.find(board);
       if(it != explored.end()){
@@ -62,10 +59,10 @@ pair<uint8_t, stack<moveCommand>> DFS2(Board board){
 
             // move left but is left or move right but is right
             if((m.dir == 0 and m.j <= board.board_width/2) or (m.dir == 2 and m.j >= board.board_width/2)) continue;
-            Board nextState = Board(board);
-            nextState.performMove(m);
-
-            pair<uint8_t, stack<moveCommand>> result = DFS2(nextState);
+            
+            board.performMove(m);
+            pair<uint8_t, stack<moveCommand>> result = DFS2(board);
+            board.undoMove(m);
             if(result.first > best_result.first){
                   best_result = result;
                   best_move = m;
@@ -78,22 +75,17 @@ pair<uint8_t, stack<moveCommand>> DFS2(Board board){
 
 
 void solveByDFS(Board& board){
-      cout << "Solving by brute force depth first search\n";
-      board.print();
+      Board tmp(board);
       board.performStarterMove();
-      board.print();
-      #if DFS_SOLVE_METHOD == 1
-            pair<uint8_t, stack<moveCommand>> result = DFS(board);
-      #elif DFS_SOLVE_METHOD == 2
-            pair<uint8_t, stack<moveCommand>> result = DFS2(board);
-      #else
-            pair<uint8_t, stack<moveCommand>> result = DFS(board);
-      #endif
+
+      pair<uint8_t, stack<moveCommand>> result = DFS2(board);
+      tmp.performStarterMove();
       while(!result.second.empty()){
-            board.performMove(result.second.top());
-            board.print();
+            tmp.print();
+            tmp.performMove(result.second.top());
             result.second.pop();
       }
+      tmp.print();
       cout << "Final height is: " << (int)result.first << '\n';
       cout << "Total iteration: " << iteration << '\n';
 }
@@ -109,8 +101,11 @@ void progressReport(){
       }
 }
 
-int main(){
-      Board board = Board(BOARD_WIDTH, BOARD_HEIGHT);
+void sol(uint8_t board_width, uint8_t board_height){
+      explored.clear();
+      iteration = 0;
+      Board board(board_width, board_height);
+      printf("width: %d height %d\n\n", board_width, board_height);
       thread progressThread(progressReport);
       auto start = chrono::high_resolution_clock::now();
 
@@ -119,5 +114,10 @@ int main(){
 
       auto end = chrono::high_resolution_clock::now();
       auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-      cout << "Execution time: " << duration.count()/1000000.0 << " seconds" << endl;
+      cout << "Execution time: " << duration.count()/1000000.0 << " seconds\n\n";
 }
+
+// main(){
+//       sol(BOARD_WIDTH, STARTING_HEIGHT);
+// }
+
